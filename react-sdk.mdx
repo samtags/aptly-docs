@@ -79,17 +79,37 @@ function ChatComponent() {
 
 Automatically subscribes to a topic and calls your callback function whenever a message is received.
 
+<Note>
+  **useStream automatically subscribes on component mount and unsubscribes on unmount.** You typically don't need to use the `subscribe` and `unsubscribe` functions from the returned object - they're only needed for manual control in advanced use cases.
+</Note>
+
 #### Usage
 
 ```jsx
 import { useStream } from '@aptly-sdk/brook/react';
 
 function MyComponent() {
-  const { streaming, subscribe, unsubscribe } = useStream('my-topic', (message, metadata) => {
+  useStream('my-topic', (message, metadata) => {
     console.log('Received message:', message);
     console.log('Offset:', metadata.offset);
     console.log('Timestamp:', metadata.timestamp);
     console.log('Is replay:', metadata.replay);
+  });
+
+  return (
+    <div>
+      <p>Messages are being received automatically</p>
+    </div>
+  );
+}
+```
+
+**With streaming status:**
+
+```jsx
+function MyComponent() {
+  const { streaming } = useStream('my-topic', (message, metadata) => {
+    console.log('Received message:', message);
   });
 
   return (
@@ -123,8 +143,8 @@ function MyComponent() {
 | Property | Type | Description |
 |----------|------|-------------|
 | `streaming` | `boolean` | Whether currently subscribed and streaming |
-| `subscribe` | `function` | Function to manually subscribe |
-| `unsubscribe` | `function` | Function to manually unsubscribe |
+| `subscribe` | `function` | *(Optional)* Function to manually subscribe - rarely needed since subscription is automatic |
+| `unsubscribe` | `function` | *(Optional)* Function to manually unsubscribe - rarely needed since cleanup is automatic |
 
 #### Example with State
 
