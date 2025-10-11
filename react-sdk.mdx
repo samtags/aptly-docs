@@ -49,11 +49,16 @@ function App() {
 Now you can use Brook hooks in any component within the provider:
 
 ```jsx
+import { useState } from 'react';
 import { useStream, usePublish } from '@aptly-sdk/brook/react';
 
 function ChatComponent() {
-  const { message, metadata } = useStream('chat-room');
+  const [latestMessage, setLatestMessage] = useState(null);
   const publish = usePublish('chat-room');
+
+  useStream('chat-room', (message, metadata) => {
+    setLatestMessage(message);
+  });
 
   const handleSend = () => {
     publish({ text: 'Hello!' });
@@ -61,7 +66,7 @@ function ChatComponent() {
 
   return (
     <div>
-      <p>Latest: {JSON.stringify(message)}</p>
+      <p>Latest: {JSON.stringify(latestMessage)}</p>
       <button onClick={handleSend}>Send</button>
     </div>
   );
@@ -72,7 +77,7 @@ function ChatComponent() {
 
 ### useStream
 
-Automatically subscribes to a topic and provides the latest message.
+Automatically subscribes to a topic and calls your callback function whenever a message is received.
 
 #### Usage
 
@@ -80,20 +85,16 @@ Automatically subscribes to a topic and provides the latest message.
 import { useStream } from '@aptly-sdk/brook/react';
 
 function MyComponent() {
-  const { message, metadata, streaming, subscribe, unsubscribe } = useStream('my-topic');
+  const { streaming, subscribe, unsubscribe } = useStream('my-topic', (message, metadata) => {
+    console.log('Received message:', message);
+    console.log('Offset:', metadata.offset);
+    console.log('Timestamp:', metadata.timestamp);
+    console.log('Is replay:', metadata.replay);
+  });
 
   return (
     <div>
-      {streaming ? (
-        <div>
-          <p>Message: {JSON.stringify(message)}</p>
-          <p>Offset: {metadata?.offset}</p>
-          <p>Timestamp: {metadata?.timestamp}</p>
-          <p>Replay: {metadata?.replay ? 'Yes' : 'No'}</p>
-        </div>
-      ) : (
-        <p>Not streaming</p>
-      )}
+      <p>Status: {streaming ? 'Streaming' : 'Not streaming'}</p>
     </div>
   );
 }
@@ -104,33 +105,51 @@ function MyComponent() {
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `topic` | `string` | Yes | The channel/topic name to subscribe to |
+| `callback` | `function` | Yes | Callback function called when messages are received |
+
+**Callback signature:** `(message, metadata) => void`
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `message` | `any` | The message data received from the channel |
+| `metadata` | `object` | Message metadata |
+| `metadata.offset` | `number` | Message sequence number |
+| `metadata.timestamp` | `string` | ISO timestamp when message was sent |
+| `metadata.replay` | `boolean` | True if this is a replayed (missed) message |
+| `metadata.channel` | `string` | Channel name |
 
 #### Returns
 
 | Property | Type | Description |
 |----------|------|-------------|
-| `message` | `any` | The latest message received |
-| `metadata` | `object` | Message metadata (offset, timestamp, replay, channel) |
 | `streaming` | `boolean` | Whether currently subscribed and streaming |
 | `subscribe` | `function` | Function to manually subscribe |
 | `unsubscribe` | `function` | Function to manually unsubscribe |
 
-#### Example with Metadata
+#### Example with State
 
 ```jsx
 function MessageDisplay() {
-  const { message, metadata, streaming } = useStream('notifications');
+  const [messages, setMessages] = useState([]);
+
+  const { streaming } = useStream('notifications', (message, metadata) => {
+    setMessages(prev => [...prev, { message, metadata }]);
+  });
 
   if (!streaming) return <p>Connecting...</p>;
 
   return (
     <div>
-      <h3>Latest Notification</h3>
-      <p>{message?.text}</p>
-      {metadata?.replay && (
-        <span className="badge">Missed Message</span>
-      )}
-      <small>Received at: {metadata?.timestamp}</small>
+      <h3>Notifications</h3>
+      {messages.map((msg, i) => (
+        <div key={i}>
+          <p>{msg.message?.text}</p>
+          {msg.metadata?.replay && (
+            <span className="badge">Missed Message</span>
+          )}
+          <small>Received at: {msg.metadata?.timestamp}</small>
+        </div>
+      ))}
     </div>
   );
 }
@@ -498,14 +517,10 @@ function ConnectionStatus() {
 
 function MessageList() {
   const [messages, setMessages] = useState([]);
-  const { message, metadata } = useStream('chat-room');
 
-  // Add new messages to the list
-  useEffect(() => {
-    if (message) {
-      setMessages(prev => [...prev, { message, metadata }]);
-    }
-  }, [message]);
+  useStream('chat-room', (message, metadata) => {
+    setMessages(prev => [...prev, { message, metadata }]);
+  });
 
   return (
     <div className="messages">

@@ -105,6 +105,7 @@ Before using the Brook SDK, you'll need to get your API key from the [Console](h
   </Tab>
   <Tab title="React">
     ```jsx
+    import { useState } from 'react';
     import Brook from '@aptly-sdk/brook';
     import { BrookProvider, useStream, usePublish } from '@aptly-sdk/brook/react';
 
@@ -120,8 +121,12 @@ Before using the Brook SDK, you'll need to get your API key from the [Console](h
     }
 
     function MyComponent() {
-      const { message } = useStream('my-topic');
+      const [latestMessage, setLatestMessage] = useState(null);
       const publish = usePublish('my-topic');
+
+      useStream('my-topic', (message, metadata) => {
+        setLatestMessage(message);
+      });
 
       const handleSend = () => {
         publish({ text: 'Hello from React!' });
@@ -129,7 +134,7 @@ Before using the Brook SDK, you'll need to get your API key from the [Console](h
 
       return (
         <div>
-          <p>Latest message: {JSON.stringify(message)}</p>
+          <p>Latest message: {JSON.stringify(latestMessage)}</p>
           <button onClick={handleSend}>Send Message</button>
         </div>
       );

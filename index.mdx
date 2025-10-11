@@ -67,6 +67,7 @@ Brook is a powerful real-time messaging SDK that provides fault-tolerant pub/sub
   </Tab>
   <Tab title="React">
     ```jsx
+    import { useState } from 'react';
     import { BrookProvider, useStream, usePublish } from '@aptly-sdk/brook/react';
 
     function App() {
@@ -78,12 +79,16 @@ Brook is a powerful real-time messaging SDK that provides fault-tolerant pub/sub
     }
 
     function ChatComponent() {
-      const { message } = useStream('chat-room');
+      const [latestMessage, setLatestMessage] = useState(null);
       const publish = usePublish('chat-room');
+
+      useStream('chat-room', (message, metadata) => {
+        setLatestMessage(message);
+      });
 
       return (
         <div>
-          <p>Latest: {JSON.stringify(message)}</p>
+          <p>Latest: {JSON.stringify(latestMessage)}</p>
           <button onClick={() => publish({ text: 'Hi!' })}>
             Send
           </button>
