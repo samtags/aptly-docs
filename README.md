@@ -1,16 +1,15 @@
-# Mintlify Starter Kit
+# Brook SDK Documentation
 
-Use the starter kit to get your docs deployed and ready to customize.
+Official documentation for Brook SDK - A real-time fault-tolerant pub/sub SDK for JavaScript and React.
 
-Click the green **Use this template** button at the top of this repo to copy the Mintlify starter kit. The starter kit contains examples with
+This documentation includes:
 
-- Guide pages
-- Navigation
-- Customizations
-- API reference pages
-- Use of popular components
+- Getting Started guide
+- JavaScript SDK documentation
+- React SDK documentation with hooks
+- REST API reference for publishing messages
 
-**[Follow the full quickstart guide](https://starter.mintlify.com/quickstart)**
+**[View the documentation](https://docs.aptly.cloud/brook)**
 
 ## Development
 
@@ -40,4 +39,5 @@ Install our GitHub app from your [dashboard](https://dashboard.mintlify.com/sett
 - If a page loads as a 404: Make sure you are running in a folder with a valid `docs.json`.
 
 ### Resources
+
 - [Mintlify documentation](https://mintlify.com/docs)

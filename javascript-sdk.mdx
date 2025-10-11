@@ -1,0 +1,408 @@
+---
+title: "JavaScript SDK"
+description: "Complete guide to using Brook SDK with vanilla JavaScript"
+---
+
+## Installation
+
+```bash
+npm install @aptly-sdk/brook
+```
+
+## Initialization
+
+Initialize the Brook client with your API key:
+
+```javascript
+import Brook from '@aptly-sdk/brook';
+
+const client = new Brook({
+  apiKey: 'your-api-key',
+  verbose: false  // Optional: Enable verbose logging for debugging
+});
+```
+
+### Configuration Options
+
+| Option | Type | Required | Description |
+|--------|------|----------|-------------|
+| `apiKey` | `string` | Yes | Your API key from the console |
+| `verbose` | `boolean` | No | Enable verbose logging (default: `false`) |
+
+## Connecting to the Server
+
+Establish a connection to the Brook server:
+
+```javascript
+// Connect to the server
+await client.connect();
+
+// Check connection status
+const isConnected = client.isConnected();
+console.log('Connected:', isConnected);
+
+// Get connection status
+const status = client.getConnectionStatus();
+console.log('Status:', status); // 'connected', 'connecting', 'disconnected', etc.
+```
+
+## Subscribing to Messages
+
+Subscribe to a channel/topic to receive real-time messages:
+
+```javascript
+// Create or get a channel
+const channel = client.realtime.channel('my-topic');
+
+// Subscribe to messages
+const unsubscribe = channel.stream((message, metadata) => {
+  console.log('Message:', message);
+  console.log('Metadata:', metadata);
+
+  // Metadata contains:
+  // - offset: Message sequence number
+  // - timestamp: When message was sent
+  // - replay: Boolean indicating if this is a replayed message
+  // - channel: Channel name
+});
+
+// Later, unsubscribe when done
+unsubscribe();
+```
+
+### Message Metadata
+
+Every message comes with metadata that provides context:
+
+```javascript
+channel.stream((message, metadata) => {
+  console.log('Message data:', message);
+
+  // Metadata structure
+  const {
+    offset,      // Number: Message sequence in the channel
+    timestamp,   // String: ISO timestamp when message was sent
+    replay,      // Boolean: true if this is a missed message being replayed
+    channel      // String: Channel name
+  } = metadata;
+
+  if (metadata.replay) {
+    console.log('This is a replayed message from offset:', metadata.offset);
+  }
+});
+```
+
+## Publishing Messages
+
+### Using the SDK
+
+Publish messages through the WebSocket connection:
+
+```javascript
+const channel = client.realtime.channel('my-topic');
+
+// Publish a simple message
+await channel.publish({ text: 'Hello World!' });
+
+// Publish any JSON-serializable data
+await channel.publish({
+  type: 'notification',
+  user: 'john',
+  data: { count: 42 }
+});
+
+// Using the alias method
+await channel.send({ text: 'Same as publish()' });
+```
+
+### Using Fetch (REST API)
+
+Publish messages via HTTP when WebSocket is not available:
+
+```javascript
+const client = new Brook({ apiKey: 'your-api-key' });
+
+// Publish via HTTP
+const result = await client.publishHttp('my-topic', {
+  text: 'Hello from HTTP!'
+});
+
+console.log('Published:', result);
+```
+
+### Using Axios
+
+You can also use axios or any HTTP client:
+
+```javascript
+import axios from 'axios';
+
+const response = await axios.post(
+  'https://connect.aptly.cloud/realtime',
+  {
+    channel: 'my-topic',
+    message: { text: 'Hello from axios!' }
+  },
+  {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': 'your-api-key'
+    }
+  }
+);
+
+console.log('Published:', response.data);
+```
+
+## Observing Connection Status
+
+Monitor connection status changes to handle reconnections and errors:
+
+```javascript
+// Subscribe to connection changes
+const unsubscribe = client.onConnectivityChange((status) => {
+  console.log('Connection status changed to:', status);
+
+  switch(status) {
+    case 'connected':
+      console.log('Connected and ready to send/receive messages');
+      break;
+    case 'connecting':
+      console.log('Attempting to connect...');
+      break;
+    case 'reconnecting':
+      console.log('Connection lost, attempting to reconnect...');
+      break;
+    case 'disconnected':
+      console.log('Disconnected from server');
+      break;
+    case 'failed':
+      console.log('Connection failed');
+      break;
+  }
+});
+
+// Unsubscribe when done
+unsubscribe();
+```
+
+### Connection States
+
+| State | Description |
+|-------|-------------|
+| `disconnected` | Not connected to server |
+| `connecting` | Initial connection attempt in progress |
+| `authenticating` | Authenticating with API key |
+| `connected` | Successfully connected and authenticated |
+| `reconnecting` | Attempting to reconnect after connection loss |
+| `unauthorized` | Authentication failed (invalid API key) |
+| `failed` | Connection failed |
+
+## Complete Example
+
+Here's a complete example showing all features together:
+
+```javascript
+import Brook from '@aptly-sdk/brook';
+
+// Initialize client
+const client = new Brook({
+  apiKey: 'your-api-key',
+  verbose: true
+});
+
+// Monitor connection status
+client.onConnectivityChange((status) => {
+  console.log('Status:', status);
+});
+
+// Connect to server
+await client.connect();
+
+// Create channel
+const channel = client.realtime.channel('chat-room');
+
+// Subscribe to messages
+const unsubscribe = channel.stream((message, metadata) => {
+  if (metadata.replay) {
+    console.log('Missed message:', message);
+  } else {
+    console.log('New message:', message);
+  }
+
+  console.log('Offset:', metadata.offset);
+  console.log('Timestamp:', metadata.timestamp);
+});
+
+// Publish messages
+await channel.publish({
+  user: 'alice',
+  text: 'Hello everyone!'
+});
+
+// Later: cleanup
+unsubscribe();
+client.disconnect();
+```
+
+## Advanced Features
+
+### Getting Client Information
+
+```javascript
+// Get unique client ID
+const clientId = client.getClientId();
+
+// Check if authenticated
+const isAuth = client.isAuthenticated();
+
+// Get active channels
+const channels = client.getActiveChannels();
+console.log('Active channels:', channels);
+
+// Get detailed statistics
+const stats = client.getStats();
+console.log('Connection stats:', stats.connection);
+console.log('Channel stats:', stats.channels);
+console.log('Active channel count:', stats.activeChannels);
+```
+
+### Channel Statistics
+
+```javascript
+const channel = client.realtime.channel('my-topic');
+
+const stats = channel.getStats();
+console.log('Channel stats:', stats);
+// {
+//   name: 'my-topic',
+//   streamHandlers: 1,
+//   connectionState: 'connected'
+// }
+```
+
+### Cleanup
+
+Always cleanup when you're done to prevent memory leaks:
+
+```javascript
+// Disconnect and cleanup
+client.disconnect();
+
+// Or full cleanup (removes all listeners)
+client.cleanup();
+```
+
+## Error Handling
+
+```javascript
+try {
+  await client.connect();
+} catch (error) {
+  console.error('Failed to connect:', error);
+}
+
+// Handle publish errors
+try {
+  await channel.publish({ data: 'test' });
+} catch (error) {
+  console.error('Failed to publish:', error);
+
+  // Fallback to HTTP
+  await client.publishHttp('my-topic', { data: 'test' });
+}
+```
+
+## Best Practices
+
+<Tip>
+  **Always handle connection state changes** to provide feedback to users when connection is lost or restored.
+</Tip>
+
+<Warning>
+  **Don't forget to cleanup** by calling `unsubscribe()` or `client.disconnect()` when done to prevent memory leaks.
+</Warning>
+
+<Note>
+  **Message replay** automatically handles missed messages when you reconnect, ensuring no data loss.
+</Note>
+
+## Using Brook with CDN (ESM)
+
+For quick prototyping or simple HTML pages, you can use Brook directly from a CDN without a build step:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Brook | Fault tolerant stream for real-time apps</title>
+  </head>
+  <body>
+    <p style="color: #292524">
+      Brook | Fault tolerant stream for real-time apps (<span id="status"
+        >Connecting</span
+      >)
+    </p>
+    <button id="sendBtn">Send Message</button>
+
+    <pre id="messages"></pre>
+
+    <script type="module">
+      // Import Brook from CDN using ESM
+      import Brook from "https://cdn.jsdelivr.net/npm/@aptly-sdk/brook@0.0.27/+esm";
+
+      const statusDiv = document.getElementById("status");
+      const sendBtn = document.getElementById("sendBtn");
+
+      // Initialize client
+      const client = new Brook({
+        apiKey: "your-api-key",
+      });
+
+      // Connect to server
+      const connected = await client.connect();
+
+      if (connected) {
+        // Show button only when connected
+        statusDiv.textContent = "Connected";
+
+        // Create channel
+        const channel = client.realtime.channel("my-topic");
+
+        // Subscribe to messages
+        channel.stream((message, metadata) => {
+          const messagesDiv = document.getElementById("messages");
+          messagesDiv.innerHTML += `<p>${JSON.stringify(message)}</p>`;
+        });
+
+        // Publish message on button click
+        sendBtn.addEventListener("click", async () => {
+          await channel.publish({
+            text: "Hello from browser!",
+            timestamp: Date.now(),
+          });
+        });
+      } else {
+        statusDiv.textContent = "Connection failed";
+        statusDiv.style.color = "#ef4444";
+      }
+    </script>
+  </body>
+</html>
+```
+
+<Note>
+  The CDN approach is perfect for demos, quick prototypes, and learning. For production applications, use the npm package with a build tool.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="React SDK" icon="react" href="/react-sdk">
+    Learn how to use Brook with React hooks
+  </Card>
+  <Card title="REST API" icon="code" href="/rest-api">
+    Publish messages using REST API
+  </Card>
+</CardGroup>

@@ -1,0 +1,189 @@
+---
+title: "Getting Started"
+description: "Get started with Brook SDK in minutes"
+---
+
+## Introduction
+
+Brook is a real-time fault-tolerant pub/sub SDK for JavaScript and React applications. It provides WebSocket connectivity with automatic reconnection, message replay for missed messages, and seamless React integration.
+
+## Features
+
+- Real-time messaging with WebSocket
+- Automatic reconnection with exponential backoff
+- Message replay for missed messages
+- React hooks for seamless integration
+- Lightweight and performant
+- Full TypeScript support
+
+## Installation
+
+### Package Manager
+
+Install Brook SDK using your preferred package manager:
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    npm install @aptly-sdk/brook
+    ```
+  </Tab>
+  <Tab title="pnpm">
+    ```bash
+    pnpm add @aptly-sdk/brook
+    ```
+  </Tab>
+  <Tab title="yarn">
+    ```bash
+    yarn add @aptly-sdk/brook
+    ```
+  </Tab>
+</Tabs>
+
+### CDN (Browser)
+
+For quick prototypes or simple HTML pages, use the CDN version:
+
+```html
+<script type="module">
+  import Brook from 'https://cdn.jsdelivr.net/npm/@aptly-sdk/brook@0.0.27/+esm';
+
+  const client = new Brook({ apiKey: 'your-api-key' });
+  // Your code here...
+</script>
+```
+
+<Note>
+  See the [JavaScript SDK guide](/javascript-sdk#using-brook-with-cdn-esm) for a complete browser example.
+</Note>
+
+## Get Your API Key
+
+Before using the Brook SDK, you'll need to get your API key from the [Console](https://console.aptly.cloud/brook).
+
+<Steps>
+  <Step title="Visit the Console">
+    Navigate to [https://console.aptly.cloud/brook](https://console.aptly.cloud/brook)
+  </Step>
+  <Step title="Sign in or create an account">
+    Create a new account or sign in to your existing account
+  </Step>
+  <Step title="Generate API Key">
+    Copy your API key from the dashboard
+  </Step>
+</Steps>
+
+<Warning>
+  Keep your API key secure and never commit it to version control. Use environment variables to store it safely.
+</Warning>
+
+## Quick Start
+
+<Tabs>
+  <Tab title="JavaScript">
+    ```javascript
+    import Brook from '@aptly-sdk/brook';
+
+    // Initialize the client
+    const client = new Brook({ apiKey: 'your-api-key' });
+
+    // Connect to the server
+    await client.connect();
+
+    // Create a channel
+    const channel = client.realtime.channel('my-topic');
+
+    // Subscribe to messages
+    channel.stream((message, metadata) => {
+      console.log('Received:', message);
+      console.log('Metadata:', metadata);
+    });
+
+    // Publish a message
+    await channel.publish({ text: 'Hello World!' });
+    ```
+  </Tab>
+  <Tab title="React">
+    ```jsx
+    import Brook from '@aptly-sdk/brook';
+    import { BrookProvider, useStream, usePublish } from '@aptly-sdk/brook/react';
+
+    // Initialize the client
+    const client = new Brook({ apiKey: 'your-api-key' });
+
+    function App() {
+      return (
+        <BrookProvider config={client}>
+          <MyComponent />
+        </BrookProvider>
+      );
+    }
+
+    function MyComponent() {
+      const { message } = useStream('my-topic');
+      const publish = usePublish('my-topic');
+
+      const handleSend = () => {
+        publish({ text: 'Hello from React!' });
+      };
+
+      return (
+        <div>
+          <p>Latest message: {JSON.stringify(message)}</p>
+          <button onClick={handleSend}>Send Message</button>
+        </div>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Browser/CDN">
+    ```html
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Brook Demo</title>
+    </head>
+    <body>
+      <div id="messages"></div>
+      <button id="sendBtn">Send Message</button>
+
+      <script type="module">
+        import Brook from 'https://cdn.jsdelivr.net/npm/@aptly-sdk/brook@0.0.27/+esm';
+
+        const client = new Brook({ apiKey: 'your-api-key' });
+        await client.connect();
+
+        const channel = client.realtime.channel('my-topic');
+
+        channel.stream((message, metadata) => {
+          const div = document.getElementById('messages');
+          div.innerHTML += `<p>${JSON.stringify(message)}</p>`;
+        });
+
+        document.getElementById('sendBtn').onclick = async () => {
+          await channel.publish({ text: 'Hello!' });
+        };
+      </script>
+    </body>
+    </html>
+    ```
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="JavaScript SDK" icon="js" href="/javascript-sdk">
+    Learn how to use Brook with vanilla JavaScript
+  </Card>
+  <Card title="React SDK" icon="react" href="/react-sdk">
+    Integrate Brook into your React applications
+  </Card>
+  <Card title="REST API" icon="code" href="/rest-api">
+    Publish messages using REST API with curl or fetch
+  </Card>
+</CardGroup>
+
+## Demo
+
+Check out our [Live Demo](https://demo.aptly.cloud) to see Brook in action.

@@ -1,0 +1,585 @@
+---
+title: "React SDK"
+description: "Integrate Brook into your React applications with powerful hooks"
+---
+
+## Installation
+
+```bash
+npm install @aptly-sdk/brook
+```
+
+<Note>
+  Brook requires React 16.8.0 or later for hooks support.
+</Note>
+
+## Setup
+
+### Step 1: Initialize the Client
+
+Create a Brook client instance outside your components:
+
+```javascript
+import Brook from '@aptly-sdk/brook';
+
+const client = new Brook({
+  apiKey: 'your-api-key',
+  verbose: false
+});
+```
+
+### Step 2: Add the Provider
+
+Wrap your app with the `BrookProvider` to make the client available to all components:
+
+```jsx
+import { BrookProvider } from '@aptly-sdk/brook/react';
+
+function App() {
+  return (
+    <BrookProvider config={client}>
+      <YourApp />
+    </BrookProvider>
+  );
+}
+```
+
+### Step 3: Use the Hooks
+
+Now you can use Brook hooks in any component within the provider:
+
+```jsx
+import { useStream, usePublish } from '@aptly-sdk/brook/react';
+
+function ChatComponent() {
+  const { message, metadata } = useStream('chat-room');
+  const publish = usePublish('chat-room');
+
+  const handleSend = () => {
+    publish({ text: 'Hello!' });
+  };
+
+  return (
+    <div>
+      <p>Latest: {JSON.stringify(message)}</p>
+      <button onClick={handleSend}>Send</button>
+    </div>
+  );
+}
+```
+
+## Hooks
+
+### useStream
+
+Automatically subscribes to a topic and provides the latest message.
+
+#### Usage
+
+```jsx
+import { useStream } from '@aptly-sdk/brook/react';
+
+function MyComponent() {
+  const { message, metadata, streaming, subscribe, unsubscribe } = useStream('my-topic');
+
+  return (
+    <div>
+      {streaming ? (
+        <div>
+          <p>Message: {JSON.stringify(message)}</p>
+          <p>Offset: {metadata?.offset}</p>
+          <p>Timestamp: {metadata?.timestamp}</p>
+          <p>Replay: {metadata?.replay ? 'Yes' : 'No'}</p>
+        </div>
+      ) : (
+        <p>Not streaming</p>
+      )}
+    </div>
+  );
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `topic` | `string` | Yes | The channel/topic name to subscribe to |
+
+#### Returns
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `message` | `any` | The latest message received |
+| `metadata` | `object` | Message metadata (offset, timestamp, replay, channel) |
+| `streaming` | `boolean` | Whether currently subscribed and streaming |
+| `subscribe` | `function` | Function to manually subscribe |
+| `unsubscribe` | `function` | Function to manually unsubscribe |
+
+#### Example with Metadata
+
+```jsx
+function MessageDisplay() {
+  const { message, metadata, streaming } = useStream('notifications');
+
+  if (!streaming) return <p>Connecting...</p>;
+
+  return (
+    <div>
+      <h3>Latest Notification</h3>
+      <p>{message?.text}</p>
+      {metadata?.replay && (
+        <span className="badge">Missed Message</span>
+      )}
+      <small>Received at: {metadata?.timestamp}</small>
+    </div>
+  );
+}
+```
+
+### useLazyStream
+
+Subscribe to a topic on-demand (manual control over subscription).
+
+#### Usage
+
+```jsx
+import { useLazyStream } from '@aptly-sdk/brook/react';
+
+function ManualSubscription() {
+  const { message, metadata, streaming, subscribe, unsubscribe } = useLazyStream('my-topic');
+
+  return (
+    <div>
+      <button onClick={subscribe} disabled={streaming}>
+        Subscribe
+      </button>
+      <button onClick={unsubscribe} disabled={!streaming}>
+        Unsubscribe
+      </button>
+
+      {streaming && (
+        <div>
+          <p>Status: Streaming</p>
+          <p>Message: {JSON.stringify(message)}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `topic` | `string` | Yes | The channel/topic name to subscribe to |
+
+#### Returns
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `message` | `any` | The latest message received |
+| `metadata` | `object` | Message metadata |
+| `streaming` | `boolean` | Whether currently subscribed |
+| `subscribe` | `function` | Function to start subscription |
+| `unsubscribe` | `function` | Function to stop subscription |
+
+#### Use Cases
+
+<Tabs>
+  <Tab title="Toggle Subscription">
+    ```jsx
+    function ToggleStream() {
+      const { message, streaming, subscribe, unsubscribe } = useLazyStream('updates');
+
+      const toggle = () => {
+        if (streaming) {
+          unsubscribe();
+        } else {
+          subscribe();
+        }
+      };
+
+      return (
+        <div>
+          <button onClick={toggle}>
+            {streaming ? 'Stop' : 'Start'} Streaming
+          </button>
+          {message && <p>{JSON.stringify(message)}</p>}
+        </div>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Conditional Subscription">
+    ```jsx
+    function ConditionalStream({ userId }) {
+      const { message, subscribe, unsubscribe } = useLazyStream('user-events');
+
+      useEffect(() => {
+        if (userId) {
+          subscribe();
+        } else {
+          unsubscribe();
+        }
+      }, [userId]);
+
+      return <div>{message && <p>{message.text}</p>}</div>;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### usePublish
+
+Publish messages to a topic.
+
+#### Usage
+
+```jsx
+import { usePublish } from '@aptly-sdk/brook/react';
+
+function PublishExample() {
+  const publish = usePublish('my-topic');
+
+  const handleClick = () => {
+    publish({
+      text: 'Hello World!',
+      timestamp: Date.now()
+    });
+  };
+
+  return <button onClick={handleClick}>Send Message</button>;
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `topic` | `string` | Yes | The channel/topic name to publish to |
+
+#### Returns
+
+Returns a `publish` function that accepts any serializable data.
+
+**publish(data)**
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `data` | `any` | Any JSON-serializable data to send |
+
+#### Examples
+
+<Tabs>
+  <Tab title="Simple Message">
+    ```jsx
+    function SendButton() {
+      const publish = usePublish('chat');
+
+      return (
+        <button onClick={() => publish({ text: 'Hi!' })}>
+          Send
+        </button>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Form Submission">
+    ```jsx
+    function ChatForm() {
+      const [text, setText] = useState('');
+      const publish = usePublish('chat-room');
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        publish({
+          user: 'alice',
+          text,
+          timestamp: Date.now()
+        });
+        setText('');
+      };
+
+      return (
+        <form onSubmit={handleSubmit}>
+          <input
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Type a message..."
+          />
+          <button type="submit">Send</button>
+        </form>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="With Error Handling">
+    ```jsx
+    function SafePublish() {
+      const publish = usePublish('my-topic');
+      const { status } = useConnection();
+
+      const handlePublish = async () => {
+        if (status !== 'connected') {
+          alert('Not connected!');
+          return;
+        }
+
+        try {
+          await publish({ data: 'test' });
+          console.log('Published successfully');
+        } catch (error) {
+          console.error('Publish failed:', error);
+        }
+      };
+
+      return <button onClick={handlePublish}>Publish</button>;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### useConnection
+
+Monitor and control the connection status.
+
+#### Usage
+
+```jsx
+import { useConnection } from '@aptly-sdk/brook/react';
+
+function ConnectionStatus() {
+  const { status } = useConnection();
+
+  return (
+    <div className={`status status-${status}`}>
+      Status: {status}
+    </div>
+  );
+}
+```
+
+#### Returns
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `status` | `string` | Current connection status |
+
+#### Connection States
+
+| State | Description |
+|-------|-------------|
+| `disconnected` | Not connected |
+| `connecting` | Connecting to server |
+| `authenticating` | Authenticating with API key |
+| `connected` | Connected and ready |
+| `reconnecting` | Reconnecting after connection loss |
+| `unauthorized` | Invalid API key |
+| `failed` | Connection failed |
+
+#### Examples
+
+<Tabs>
+  <Tab title="Status Indicator">
+    ```jsx
+    function StatusIndicator() {
+      const { status } = useConnection();
+
+      const getColor = () => {
+        switch(status) {
+          case 'connected': return 'green';
+          case 'connecting':
+          case 'reconnecting': return 'yellow';
+          default: return 'red';
+        }
+      };
+
+      return (
+        <div style={{ color: getColor() }}>
+          ● {status}
+        </div>
+      );
+    }
+    ```
+  </Tab>
+  <Tab title="Reconnection Handler">
+    ```jsx
+    function ReconnectHandler() {
+      const { status } = useConnection();
+
+      useEffect(() => {
+        if (status === 'connected') {
+          console.log('Connected! Ready to send messages');
+        } else if (status === 'reconnecting') {
+          console.log('Reconnecting...');
+        } else if (status === 'failed') {
+          console.error('Connection failed');
+        }
+      }, [status]);
+
+      return <p>Status: {status}</p>;
+    }
+    ```
+  </Tab>
+  <Tab title="Conditional Rendering">
+    ```jsx
+    function App() {
+      const { status } = useConnection();
+
+      if (status === 'unauthorized') {
+        return <div>Invalid API key</div>;
+      }
+
+      if (status === 'connecting' || status === 'authenticating') {
+        return <div>Connecting...</div>;
+      }
+
+      if (status !== 'connected') {
+        return <div>Disconnected</div>;
+      }
+
+      return <MainApp />;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Complete Example
+
+Here's a complete chat application example:
+
+```jsx
+import { useState } from 'react';
+import Brook from '@aptly-sdk/brook';
+import {
+  BrookProvider,
+  useStream,
+  usePublish,
+  useConnection
+} from '@aptly-sdk/brook/react';
+
+// Initialize client
+const client = new Brook({ apiKey: 'your-api-key' });
+
+function App() {
+  return (
+    <BrookProvider config={client}>
+      <ChatApp />
+    </BrookProvider>
+  );
+}
+
+function ChatApp() {
+  const { status } = useConnection();
+
+  if (status !== 'connected') {
+    return <div>Connecting to Brook... ({status})</div>;
+  }
+
+  return (
+    <div>
+      <ConnectionStatus />
+      <MessageList />
+      <MessageForm />
+    </div>
+  );
+}
+
+function ConnectionStatus() {
+  const { status } = useConnection();
+
+  return (
+    <div className="status-bar">
+      Connection: <span className={status}>{status}</span>
+    </div>
+  );
+}
+
+function MessageList() {
+  const [messages, setMessages] = useState([]);
+  const { message, metadata } = useStream('chat-room');
+
+  // Add new messages to the list
+  useEffect(() => {
+    if (message) {
+      setMessages(prev => [...prev, { message, metadata }]);
+    }
+  }, [message]);
+
+  return (
+    <div className="messages">
+      {messages.map((msg, index) => (
+        <div key={index} className="message">
+          <p>{msg.message.text}</p>
+          <small>
+            {msg.metadata.replay && '[Replay] '}
+            {new Date(msg.metadata.timestamp).toLocaleTimeString()}
+          </small>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MessageForm() {
+  const [text, setText] = useState('');
+  const publish = usePublish('chat-room');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!text.trim()) return;
+
+    publish({
+      text,
+      user: 'anonymous',
+      timestamp: Date.now()
+    });
+
+    setText('');
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        type="text"
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        placeholder="Type a message..."
+      />
+      <button type="submit">Send</button>
+    </form>
+  );
+}
+
+export default App;
+```
+
+## Best Practices
+
+<Tip>
+  **Use useStream for automatic subscription** when you want to start receiving messages immediately on component mount.
+</Tip>
+
+<Tip>
+  **Use useLazyStream for manual control** when you need to conditionally subscribe based on user actions or state.
+</Tip>
+
+<Warning>
+  **Always monitor connection status** using useConnection to provide feedback when the connection is lost or unstable.
+</Warning>
+
+<Note>
+  **Message replay is automatic** - when your app reconnects, you'll receive any messages that were sent while offline.
+</Note>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="JavaScript SDK" icon="js" href="/javascript-sdk">
+    Learn about the underlying JavaScript SDK
+  </Card>
+  <Card title="REST API" icon="code" href="/rest-api">
+    Publish messages using REST API
+  </Card>
+</CardGroup>
