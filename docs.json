@@ -15,18 +15,11 @@
         "groups": [
           {
             "group": "Overview",
-            "pages": [
-              "index",
-              "getting-started"
-            ]
+            "pages": ["index", "getting-started"]
           },
           {
             "group": "SDK Guides",
-            "pages": [
-              "javascript-sdk",
-              "react-sdk",
-              "rest-api"
-            ]
+            "pages": ["javascript-sdk", "react-sdk", "rest-api"]
           }
         ]
       }
@@ -45,7 +38,7 @@
         },
         {
           "anchor": "GitHub",
-          "href": "https://github.com/samtags/aptly-brook",
+          "href": "https://github.com/aptly-cloud/brook",
           "icon": "github"
         }
       ]
@@ -64,19 +57,19 @@
   },
   "contextual": {
     "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/samtags/aptly-brook"
+      "github": "https://github.com/aptly-cloud/brook"
     }
   }
 }
