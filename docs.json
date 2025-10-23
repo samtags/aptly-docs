@@ -40,6 +40,11 @@
           "anchor": "GitHub",
           "href": "https://github.com/aptly-cloud/brook",
           "icon": "github"
+        },
+        {
+          "anchor": "Status",
+          "href": "https://status.aptly.cloud",
+          "icon": "signal"
         }
       ]
     }
