@@ -126,6 +126,7 @@ Brook is a powerful real-time messaging SDK that provides fault-tolerant pub/sub
     curl -X POST https://connect.aptly.cloud/realtime \
       -H "Content-Type: application/json" \
       -H "x-api-key: your-api-key" \
+      -H "Origin: https://your.allowed.website \
       -d '{
         "channel": "my-topic",
         "message": {"text": "Hello from cURL!"}
