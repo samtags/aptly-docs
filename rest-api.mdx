@@ -20,21 +20,54 @@ POST https://connect.aptly.cloud/realtime
 
 ## Authentication
 
-Include your API key in the request headers:
+Aptly uses API keys for authentication. Include your API key in the `x-api-key` header.
 
-```
-x-api-key: your-api-key
-```
+<Note>
+Use **Server Keys (sk_)** for REST API requests. Public keys (pk_) cannot publish messages.
+</Note>
+
+### Required Headers
+
+| Header | Value | Required | Notes |
+|--------|-------|----------|-------|
+| `x-api-key` | Your server key | ✅ Yes | Must start with `sk_` |
+| `Content-Type` | `application/json` | ✅ Yes | Request body format |
+| `Origin` | Your domain | ❌ No | Not required for server keys |
+
+### Server Keys vs Public Keys
+
+<Tabs>
+  <Tab title="Server Key (sk_) - Recommended">
+    Server keys are designed for backend services and have no origin restrictions.
+
+    ```bash
+    curl -X POST https://connect.aptly.cloud/realtime \
+      -H "x-api-key: sk_xyz789..." \
+      -H "Content-Type: application/json" \
+      -d '{"channel": "events", "message": {"type": "update"}}'
+    ```
+
+    <Tip>
+    No `Origin` header needed. Perfect for serverless functions, APIs, and backend services.
+    </Tip>
+  </Tab>
+
+  <Tab title="Public Key (pk_) - Client Only">
+    Public keys are for client-side subscriptions only and cannot publish via REST API.
+
+    <Warning>
+    Publishing with public keys is not supported via REST API. Use the JavaScript SDK for client-side publishing.
+    </Warning>
+
+    For client-side real-time subscriptions, see the [JavaScript SDK](/javascript-sdk) or [React SDK](/react-sdk) documentation.
+  </Tab>
+</Tabs>
+
+<Card title="Authentication Guide" icon="shield" href="/authentication">
+  Learn when to use public keys vs server keys
+</Card>
 
 ## Request Format
-
-### Headers
-
-| Header         | Value                    | Required        | Notes                                                                                                                                              |
-| -------------- | ------------------------ | --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Content-Type` | `application/json`       | Yes             | -                                                                                                                                                  |
-| `x-api-key`    | Your API key             | Yes             | -                                                                                                                                                  |
-| `Origin`       | Your allowed website URL | For public keys | Automatically sent by browsers; must be manually specified in non-browser environments (cURL, server-side code). Not required if using server keys |
 
 ### Body
 
@@ -46,16 +79,6 @@ x-api-key: your-api-key
   }
 }
 ```
-
-<Note>
-  **About the Origin Header:** The Origin header is required for CORS validation
-  when using public API keys. When making requests from a browser, the Origin
-  header is automatically sent by the browser and you don't need to manually
-  specify it. For server-side requests (Node.js, serverless functions, cURL)
-  using public keys, you must manually include the Origin header with one of
-  your allowed website URLs. If you're using a server key, the Origin header is
-  not required.
-</Note>
 
 ## Examples
 

@@ -1,0 +1,167 @@
+---
+title: 'Authentication & API Keys'
+description: 'Understanding Public Keys and Server Keys in Aptly'
+---
+
+Aptly uses two types of API keys to secure your real-time communications: **Public Keys** for client-side applications and **Server Keys** for server-side integrations.
+
+## Key Types Overview
+
+<CardGroup cols={2}>
+  <Card title="Public Keys (pk_)" icon="globe">
+    For browsers, mobile apps, and client-side code
+  </Card>
+  <Card title="Server Keys (sk_)" icon="server">
+    For backend services, APIs, and server-to-server communication
+  </Card>
+</CardGroup>
+
+## Public Keys (pk_)
+
+### When to Use
+- Browser applications
+- Mobile apps (iOS, Android, React Native)
+- Client-side JavaScript
+- Any code that runs on user devices
+
+### Security Features
+- **Origin validation**: Requests are validated against allowed domains
+- **Restricted permissions**: Can only subscribe to channels
+- **Safe to expose**: Designed to be included in client-side code
+
+### Example
+```javascript
+const client = new Brook({ apiKey: 'pk_abc123...' });
+```
+
+## Server Keys (sk_)
+
+### When to Use
+- Backend APIs (Node.js, Python, Go, etc.)
+- Serverless functions (AWS Lambda, Vercel, Cloudflare Workers)
+- Scheduled jobs and cron tasks
+- Webhooks and integrations
+- CI/CD pipelines
+
+### Security Features
+- **No origin restrictions**: Works from any server environment
+- **Full permissions**: Can publish and subscribe
+- **Must be kept secret**: Should never be exposed in client-side code
+
+<Warning>
+Never commit server keys to version control or expose them in client-side code. Always use environment variables.
+</Warning>
+
+### Example
+```bash
+# Backend publishing with server key
+curl -X POST https://connect.aptly.cloud/realtime \
+  -H "x-api-key: sk_xyz789..." \
+  -H "Content-Type: application/json" \
+  -d '{"channel": "notifications", "message": {"text": "Hello"}}'
+```
+
+## Getting Your API Keys
+
+<Steps>
+  <Step title="Navigate to Console">
+    Go to [console.aptly.cloud](https://console.aptly.cloud) and select your project
+  </Step>
+
+  <Step title="View API Keys Section">
+    Scroll to the **API Keys** section on your project dashboard
+  </Step>
+
+  <Step title="Copy Keys">
+    - **Public Key (pk_)**: Use for client-side applications
+    - **Server Key (sk_)**: Use for server-side applications
+  </Step>
+</Steps>
+
+## Best Practices
+
+### For Public Keys
+<Tip>
+Public keys are safe to include in your frontend code. They're protected by origin validation.
+</Tip>
+
+```javascript
+// ✅ Safe - Public key in client-side code
+const client = new Brook({ apiKey: 'pk_abc123...' });
+```
+
+### For Server Keys
+<Warning>
+Server keys should NEVER be exposed in client-side code or committed to repositories.
+</Warning>
+
+```javascript
+// ✅ Correct - Server key in environment variable
+const client = new Brook({ apiKey: process.env.APTLY_SERVER_KEY });
+
+// ❌ WRONG - Never hardcode server keys
+const client = new Brook({ apiKey: 'sk_xyz789...' });
+```
+
+## Common Use Cases
+
+### Use Case 1: Web Application
+```
+Frontend (Browser) → Public Key (pk_) → Subscribe to updates
+Backend (Node.js) → Server Key (sk_) → Publish updates
+```
+
+### Use Case 2: Mobile App
+```
+Mobile App → Public Key (pk_) → Subscribe to real-time data
+Backend API → Server Key (sk_) → Publish new data
+```
+
+### Use Case 3: Serverless Function
+```
+Cloudflare Worker/Vercel Function → Server Key (sk_) → Publish events
+```
+
+## Security Checklist
+
+- [ ] Store server keys in environment variables
+- [ ] Add `.env` files to `.gitignore`
+- [ ] Use public keys for all client-side code
+- [ ] Configure allowed origins for public keys
+- [ ] Rotate keys if accidentally exposed
+- [ ] Use different keys for development and production
+
+## Key Rotation
+
+If you believe your server key has been compromised:
+
+<Steps>
+  <Step title="Navigate to Console">
+    Go to [console.aptly.cloud](https://console.aptly.cloud) and select your project
+  </Step>
+
+  <Step title="Generate New Key">
+    Scroll to the API Keys section on your project dashboard
+  </Step>
+
+  <Step title="Update Applications">
+    Update all services using the old key
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="REST API" icon="code" href="/rest-api">
+    Learn how to publish with server keys
+  </Card>
+  <Card title="JavaScript SDK" icon="js" href="/javascript-sdk">
+    Subscribe with public keys
+  </Card>
+  <Card title="Getting Started" icon="rocket" href="/getting-started">
+    Quick start guide
+  </Card>
+  <Card title="React SDK" icon="react" href="/react-sdk">
+    Real-time React hooks
+  </Card>
+</CardGroup>

@@ -77,6 +77,42 @@ Before using the Brook SDK, you'll need to get your API key from the [Console](h
   Keep your API key secure and never commit it to version control. Use environment variables to store it safely.
 </Warning>
 
+## Understanding Key Types
+
+Aptly provides two types of API keys:
+
+<Tabs>
+  <Tab title="Public Key (pk_)">
+    **For client-side applications**
+
+    Use public keys in browsers, mobile apps, and any client-side code. These keys are protected by origin validation.
+
+    ```javascript
+    // Safe to use in frontend code
+    const client = new Brook({ apiKey: 'pk_abc123...' });
+    ```
+  </Tab>
+
+  <Tab title="Server Key (sk_)">
+    **For server-side applications**
+
+    Use server keys in backend services, APIs, and serverless functions. These keys have no origin restrictions.
+
+    <Warning>
+    Never expose server keys in client-side code. Always use environment variables.
+    </Warning>
+
+    ```javascript
+    // Backend only - use environment variables
+    const client = new Brook({ apiKey: process.env.APTLY_SERVER_KEY });
+    ```
+  </Tab>
+</Tabs>
+
+<Card title="Learn More About Authentication" icon="lock" href="/authentication">
+  Read the complete guide on Public Keys vs Server Keys
+</Card>
+
 ## Quick Start
 
 <Tabs>

@@ -29,6 +29,43 @@ const client = new Brook({
 | `apiKey` | `string` | Yes | Your API key from the console |
 | `verbose` | `boolean` | No | Enable verbose logging (default: `false`) |
 
+### Key Type Selection
+
+<Tabs>
+  <Tab title="Public Key (Recommended)">
+    Use public keys for browser and client-side applications:
+
+    ```javascript
+    const client = new Brook({
+      apiKey: 'pk_your_public_key_here'
+    });
+    ```
+
+    <Tip>
+    Public keys are safe to use in frontend code and are protected by origin validation.
+    </Tip>
+  </Tab>
+
+  <Tab title="Server Key (Backend Only)">
+    Only use server keys in secure backend environments:
+
+    ```javascript
+    // Node.js backend
+    const client = new Brook({
+      apiKey: process.env.APTLY_SERVER_KEY
+    });
+    ```
+
+    <Warning>
+    Never use server keys in browser code or commit them to version control.
+    </Warning>
+  </Tab>
+</Tabs>
+
+<Card title="Learn More About Key Types" icon="key" href="/authentication">
+  Read the complete guide on Public Keys vs Server Keys
+</Card>
+
 ## Connecting to the Server
 
 Establish a connection to the Brook server:
