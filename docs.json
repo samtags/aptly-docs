@@ -19,7 +19,7 @@
           },
           {
             "group": "SDK Guides",
-            "pages": ["javascript-sdk", "react-sdk", "rest-api"]
+            "pages": ["javascript-sdk", "go-sdk", "react-sdk", "rest-api"]
           }
         ]
       }

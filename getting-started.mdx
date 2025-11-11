@@ -5,7 +5,7 @@ description: "Get started with Brook SDK in minutes"
 
 ## Introduction
 
-Brook is a real-time fault-tolerant pub/sub SDK for JavaScript and React applications. It provides WebSocket connectivity with automatic reconnection, message replay for missed messages, and seamless React integration.
+Brook is a real-time fault-tolerant pub/sub SDK for JavaScript, Go, and React applications. It provides WebSocket connectivity with automatic reconnection, message replay for missed messages, and seamless integration with your favorite frameworks.
 
 ## Features
 
@@ -177,6 +177,50 @@ Aptly provides two types of API keys:
     }
     ```
   </Tab>
+  <Tab title="Go">
+    ```go
+    package main
+
+    import (
+        "fmt"
+        "log"
+        "time"
+
+        aptly "github.com/aptly-cloud/go"
+    )
+
+    func main() {
+        // Initialize the client
+        client, err := aptly.NewClient(aptly.Config{
+            APIKey: "your-api-key",
+        })
+        if err != nil {
+            log.Fatal(err)
+        }
+        defer client.Cleanup()
+
+        // Connect to the server
+        client.Connect()
+
+        // Create a channel
+        channel, _ := client.Realtime().Channel("my-topic")
+
+        // Subscribe to messages
+        channel.Stream(func(data interface{}, metadata aptly.MessageMetadata) {
+            fmt.Printf("Received: %v\n", data)
+            fmt.Printf("Metadata: %+v\n", metadata)
+        })
+
+        // Publish a message
+        channel.Publish(map[string]string{
+            "text": "Hello World!",
+        })
+
+        // Keep running
+        time.Sleep(30 * time.Second)
+    }
+    ```
+  </Tab>
   <Tab title="Browser/CDN">
     ```html
     <!DOCTYPE html>
@@ -216,6 +260,9 @@ Aptly provides two types of API keys:
 <CardGroup cols={2}>
   <Card title="JavaScript SDK" icon="js" href="/javascript-sdk">
     Learn how to use Brook with vanilla JavaScript
+  </Card>
+  <Card title="Go SDK" icon="golang" href="/go-sdk">
+    Build real-time applications with Go
   </Card>
   <Card title="React SDK" icon="react" href="/react-sdk">
     Integrate Brook into your React applications
