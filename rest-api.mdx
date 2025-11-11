@@ -30,10 +30,11 @@ x-api-key: your-api-key
 
 ### Headers
 
-| Header | Value | Required |
-|--------|-------|----------|
-| `Content-Type` | `application/json` | Yes |
-| `x-api-key` | Your API key | Yes |
+| Header | Value | Required | Notes |
+|--------|-------|----------|-------|
+| `Content-Type` | `application/json` | Yes | |
+| `x-api-key` | Your API key | Yes | |
+| `Origin` | Your allowed website URL | For public keys | Automatically sent by browsers; must be manually specified in non-browser environments (cURL, server-side code). Not required if using server keys |
 
 ### Body
 
@@ -45,6 +46,10 @@ x-api-key: your-api-key
   }
 }
 ```
+
+<Note>
+  **About the Origin Header:** The Origin header is required for CORS validation when using public API keys. When making requests from a browser, the Origin header is automatically sent by the browser and you don't need to manually specify it. For server-side requests (Node.js, serverless functions, cURL) using public keys, you must manually include the Origin header with one of your allowed website URLs. If you're using a server key, the Origin header is not required.
+</Note>
 
 ## Examples
 
@@ -113,6 +118,7 @@ x-api-key: your-api-key
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': 'your-api-key'
+          // Note: Origin header is automatically sent by the browser
         },
         body: JSON.stringify({
           channel,
@@ -145,7 +151,8 @@ x-api-key: your-api-key
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': process.env.BROOK_API_KEY
+            'x-api-key': process.env.BROOK_API_KEY,
+            'Origin': 'https://your.allowed.website'
           },
           body: JSON.stringify({ channel, message })
         });
@@ -182,7 +189,8 @@ x-api-key: your-api-key
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'x-api-key': 'your-api-key'
+              'x-api-key': 'your-api-key',
+              'Origin': 'https://your.allowed.website'
             },
             body: JSON.stringify({ channel, message })
           });
@@ -228,7 +236,8 @@ x-api-key: your-api-key
           {
             headers: {
               'Content-Type': 'application/json',
-              'x-api-key': 'your-api-key'
+              'x-api-key': 'your-api-key',
+              'Origin': 'https://your.allowed.website'
             }
           }
         );
@@ -257,7 +266,8 @@ x-api-key: your-api-key
       baseURL: 'https://connect.aptly.cloud',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.BROOK_API_KEY
+        'x-api-key': process.env.BROOK_API_KEY,
+        'Origin': 'https://your.allowed.website'
       }
     });
 
@@ -284,7 +294,8 @@ x-api-key: your-api-key
       baseURL: 'https://connect.aptly.cloud',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.BROOK_API_KEY
+        'x-api-key': process.env.BROOK_API_KEY,
+        'Origin': 'https://your.allowed.website'
       }
     });
 
@@ -370,7 +381,8 @@ x-api-key: your-api-key
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': process.env.BROOK_API_KEY
+          'x-api-key': process.env.BROOK_API_KEY,
+          'Origin': 'https://your.allowed.website'
         },
         body: JSON.stringify({
           channel: 'lambda-events',
@@ -404,7 +416,8 @@ x-api-key: your-api-key
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': process.env.BROOK_API_KEY
+            'x-api-key': process.env.BROOK_API_KEY,
+            'Origin': 'https://your.allowed.website'
           },
           body: JSON.stringify({
             channel: 'notifications',
@@ -428,7 +441,8 @@ x-api-key: your-api-key
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-api-key': env.BROOK_API_KEY
+            'x-api-key': env.BROOK_API_KEY,
+            'Origin': 'https://your.allowed.website'
           },
           body: JSON.stringify({
             channel: 'worker-events',
@@ -457,7 +471,8 @@ app.post('/webhook', async (req, res) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.BROOK_API_KEY
+        'x-api-key': process.env.BROOK_API_KEY,
+        'Origin': 'https://your.allowed.website'
       },
       body: JSON.stringify({
         channel: 'webhooks',
@@ -492,7 +507,8 @@ cron.schedule('0 * * * *', async () => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': process.env.BROOK_API_KEY
+      'x-api-key': process.env.BROOK_API_KEY,
+      'Origin': 'https://your.allowed.website'
     },
     body: JSON.stringify({
       channel: 'system-events',
@@ -533,7 +549,8 @@ async function safePublish(channel, message) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.BROOK_API_KEY
+        'x-api-key': process.env.BROOK_API_KEY,
+        'Origin': 'https://your.allowed.website'
       },
       body: JSON.stringify({ channel, message })
     });

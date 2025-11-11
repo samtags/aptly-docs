@@ -123,6 +123,7 @@ Publish messages via HTTP when WebSocket is not available:
 const client = new Brook({ apiKey: 'your-api-key' });
 
 // Publish via HTTP
+// Note: Origin header is automatically sent by browsers
 const result = await client.publishHttp('my-topic', {
   text: 'Hello from HTTP!'
 });
@@ -146,7 +147,9 @@ const response = await axios.post(
   {
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': 'your-api-key'
+      'x-api-key': 'your-api-key',
+      'Origin': 'https://your.allowed.website'
+      // Note: In browsers, Origin header is automatically sent and you don't need to specify it
     }
   }
 );
