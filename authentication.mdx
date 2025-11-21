@@ -8,7 +8,7 @@ Aptly uses two types of API keys to secure your real-time communications: **Publ
 ## Key Types Overview
 
 <CardGroup cols={2}>
-  <Card title="Public Keys (pk_)" icon="globe">
+  <Card title="Public Keys" icon="globe">
     For browsers, mobile apps, and client-side code
   </Card>
   <Card title="Server Keys (sk_)" icon="server">
@@ -16,7 +16,7 @@ Aptly uses two types of API keys to secure your real-time communications: **Publ
   </Card>
 </CardGroup>
 
-## Public Keys (pk_)
+## Public Keys
 
 ### When to Use
 - Browser applications
@@ -34,7 +34,7 @@ Aptly uses two types of API keys to secure your real-time communications: **Publ
 const client = new Brook({ apiKey: 'pk_abc123...' });
 ```
 
-## Server Keys (sk_)
+## Server Keys
 
 ### When to Use
 - Backend APIs (Node.js, Python, Go, etc.)
@@ -73,8 +73,8 @@ curl -X POST https://connect.aptly.cloud/realtime \
   </Step>
 
   <Step title="Copy Keys">
-    - **Public Key (pk_)**: Use for client-side applications
-    - **Server Key (sk_)**: Use for server-side applications
+    - **Public Key**: Use for client-side applications
+    - **Server Key**: Use for server-side applications
   </Step>
 </Steps>
 
